@@ -30,8 +30,18 @@ Tec %>%
   ) -> Tec
 TecT$Dosing <- Tec$Dosing
 TecT$best_response <- Tec$best_response
+Tec <- subset(Tec, Tec$Center != "MUSC") #remove MUSC
+TecT <- subset(TecT, TecT$Center != "MUSC")  #remove MUSC
+
 TecWB <- subset(Tec, Tec$Race != "H" & Tec$Race != "Asian")
 TecTWB <- subset(TecT, TecT$Race != "H" & Tec$Race != "Asian")
+TecRes <- subset(Tec, Tec$best_response != "PD" &
+                   Tec$best_response != "SD" &
+                   Tec$best_response != "unknown")
+TecTRes <- subset(TecT, TecT$best_response != "PD" &
+                   Tec$best_response != "SD" &
+                    Tec$best_response != "unknown")
+
 TecRes <- TecRes %>%
   mutate(Dosing_frequency = 
            ifelse (TecRes$Continuous_Fixed == "Fixed", "Fixed", 
@@ -42,8 +52,7 @@ TecRes <- TecRes %>%
                        "weekly")))
   )
 
-Tec <- subset(Tec, Tec$Center != "MUSC") #remove MUSC
-TecT <- subset(TecT, TecT$Center != "MUSC")  #remove MUSC
+Tec3M <- subset(TecRes, TecRes$PFS > 3)
 
 Tec$Date_of_initial_diagnosis <- as.Date(Tec$Date_of_initial_diagnosis,
                                          origin = "1899-12-31")
@@ -68,6 +77,7 @@ TecTRes$Continuous_Fixed  <- TecRes$Continuous_Fixed
 TecTRes$`Duration_of_CRS_(days)` <- as.numeric(TecTRes$`Duration_of_CRS_(days)`)
 TecTRes$Dosing_frequency <- TecRes$Dosing_frequency
 TecTRes$IgG_at_D90 <- as.numeric(TecTRes$IgG_at_D90)
+
 
 # Variable names ----------------------------------------------------------
 
@@ -1003,7 +1013,7 @@ ShebliSurv2 <- function(fitmodel, data,coxmodel, ylocation=0.85, xlocation=25, m
   par(bg = gray(.9),mar=c(2,2,1,2))
   margin(t = 2, r = 5, b = 1, l = 1, unit = "pt")
   p2 <- ggsurvplot(fitmodel, data = data, risk.table = TRUE,pval=T,palette = "jco",
-                   main = maintitle, surv.median.line = "hv", pval.coord=c(xlocation-5,0.6),
+                   main = maintitle, surv.median.line = "hv", pval.coord=c(xlocation-5,0.65),
                    submain = submaintitle , break.x.by=5,
                    caption = "", xlim = c(0,xlimit), ylim = c(0, 1.01), xlab=xlab,fun=NULL,
                    axes.offset=FALSE,pval.method = F, conf.int=F, 
@@ -1057,6 +1067,21 @@ ftb6<- survfit(Surv(TecRes$OS,TecRes$Died)~
                  TecRes$Continuous_Fixed); ftb6
 PR.cox6 <- coxph(Surv(TecRes$OS,TecRes$Died)~
                    TecRes$Continuous_Fixed);summary(PR.cox6)
+
+ftbpm<- survfit(Surv(Tec3M$PFS,Tec3M$Progressed)~
+                 Tec3M$Continuous_Fixed); ftbpm
+PR.coxpm <- coxph(Surv(Tec3M$PFS,Tec3M$Progressed)~
+                   Tec3M$Continuous_Fixed);summary(PR.coxpm)
+
+ftbm<- survfit(Surv(Tec3M$OS,Tec3M$Died)~
+                 Tec3M$Continuous_Fixed); ftbm
+PR.coxm <- coxph(Surv(Tec3M$OS,Tec3M$Died)~
+                   Tec3M$Continuous_Fixed);summary(PR.coxm)
+
+ftball<- survfit(Surv(Tec3M$PFS,Tec3M$Progressed)~
+                  Tec3M$Dosing_frequency ); ftball
+PR.coxall <- coxph(Surv(Tec3M$PFS,Tec3M$Progressed)~
+                    Tec3M$Dosing_frequency);summary(PR.coxall)
 
 
 # Kaplan Meier plots ------------------------------------------------------
@@ -1131,6 +1156,108 @@ ppll1
 # Step 3: Run dev.off() to create the file!
 dev.off()
 
+ppll3= ShebliSurv2(fitmodel= ftbm, data= Tec3M, coxmodel= PR.coxm, ylocation=0.85,
+                   xlocation=23, maintitle="",
+                   submaintitle="KM for OS by continous vs. fixed treatment
+                   after 3 months left censoring",
+                   xlimit=46,
+                   xlab="Months",
+                   ylab1="Probability of overall survival", legend1="Continuous",
+                   legend2="Fixed", legendsize=5,
+                   tablab1="Continuous", tablab2="Fixed")
+ppll3
+
+png(file = "fileOS.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
+
+# Step 2: Create the plot with R code
+ppll1
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
+
+ppll3= ShebliSurv2(fitmodel= ftbm, data= Tec3M, coxmodel= PR.coxm, ylocation=0.85,
+                   xlocation=23, maintitle="",
+                   submaintitle="KM for OS by continous vs. fixed treatment
+                   after 3 months left censoring",
+                   xlimit=46,
+                   xlab="Months",
+                   ylab1="Probability of overall survival", legend1="Continuous",
+                   legend2="Fixed", legendsize=5,
+                   tablab1="Continuous", tablab2="Fixed")
+ppll3
+
+png(file = "censored_OS.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
+
+# Step 2: Create the plot with R code
+ppll3
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
+
+ppll4= ShebliSurv2(fitmodel= ftbpm, data= Tec3M, coxmodel= PR.coxpm,
+                   ylocation=0.95,
+                   xlocation=23, maintitle="",
+                   submaintitle="KM for PFS by continous vs. fixed treatment
+                   after 3 months left censoring",
+                   xlimit=46,
+                   xlab="Months",
+                   ylab1="Probability of progression free survival",
+                   legend1="Continuous",
+                   legend2="Fixed", legendsize=5,
+                   tablab1="Continuous", tablab2="Fixed")
+ppll4
+
+png(file = "censored_PFS.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
+
+# Step 2: Create the plot with R code
+ppll4
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
+
+
+p2all <- ggsurvplot(ftball, data = Tec3M, risk.table = TRUE,pval=T,
+                    palette = "jco", risk.table.col = c("Dosing_frequency"),
+           main = "maintitle", surv.median.line = "hv",
+           pval.coord=c(25-5,0.65),
+           submain = "Progression free survival based on
+           dosing frequency" , break.x.by=5,
+           caption = "", xlim = c(0,46), ylim = c(0, 1.01),
+           xlab="Months", fun=NULL,
+           axes.offset=FALSE,pval.method = F, conf.int=F, 
+           ylab= "Probability of progression free survival",
+           legend.title = "",
+           legend.labs = c("Two weeks","Four weeks",
+                           "Fixed","Weekly")) 
+p2all$plot <- p2all$plot+ 
+  ggplot2::annotate("text", 
+                    x = 30, y = 0.6, # x and y coordinates of the text
+                    label = "Doses\t\t\tMedian   \n  Two weeks     NA \nFour weeks    14 \n Fixed dosing  13 \n Weekly 16",
+                    size = 5)
+
+p2all
+
+combined_plot <- p2all$plot / p2all$table + plot_layout(heights = c(3,0.8))
+
+combined_plot
+
+mytable <- cbind(Doses=c("Two weeks","Four weeks",
+                         "Fixed","Weekly"),
+                Median= c("NA",14,13,16))
++ 
+  annotation_custom(tableGrob(mytable), xmin=35, xmax=50, ymin=-2.5, ymax=-1)
 
 # End ---------------------------------------------------------------------
 
