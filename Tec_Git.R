@@ -1243,21 +1243,25 @@ p2all <- ggsurvplot(ftball, data = Tec3M, risk.table = TRUE,pval=T,
                            "Fixed","Weekly")) 
 p2all$plot <- p2all$plot+ 
   ggplot2::annotate("text", 
-                    x = 30, y = 0.6, # x and y coordinates of the text
-                    label = "Doses\t\t\tMedian   \n  Two weeks     NA \nFour weeks    14 \n Fixed dosing  13 \n Weekly 16",
+                    x = 35, y = 0.6, # x and y coordinates of the text
+                    label = "Doses          Median months (CI)\n  Two weeks                 NA (NA,NA)\nFour weeks                14 (14,NA)\n Fixed dosing             13 (10, NA)\n Weekly                      16 (16,NA)",
                     size = 5)
 
-p2all
+combined_plot1 <- p2all$plot / p2all$table + plot_layout(heights = c(3,0.8))
 
-combined_plot <- p2all$plot / p2all$table + plot_layout(heights = c(3,0.8))
+combined_plot1
 
-combined_plot
+png(file = "censored_PFS_byDose.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
 
-mytable <- cbind(Doses=c("Two weeks","Four weeks",
-                         "Fixed","Weekly"),
-                Median= c("NA",14,13,16))
-+ 
-  annotation_custom(tableGrob(mytable), xmin=35, xmax=50, ymin=-2.5, ymax=-1)
+# Step 2: Create the plot with R code
+combined_plot1
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
 
 # End ---------------------------------------------------------------------
 
