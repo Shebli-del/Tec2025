@@ -1329,21 +1329,26 @@ dev.off()
 p2OS4W <- ggsurvplot(ftbOS4W, data = Tec3M_No4w, risk.table = TRUE,pval=T,
                       palette = "jco", risk.table.col = c("Dosing_frequency"),
                       main = "maintitle", surv.median.line = "hv",
-                      pval.coord=c(25,0.25),
-                      submain = "Progression free survival based on
-           dosing frequency" , break.x.by=5,
+                      pval.coord=c(23,0.3),
+                      submain = "Overall survival based on dosing frequency" , break.x.by=5,
                       caption = "", xlim = c(0,46), ylim = c(0, 1.01),
                       xlab="Months", fun=NULL,
                       axes.offset=FALSE,pval.method = F, conf.int=F, 
-                      ylab= "Probability of progression free survival",
+                      ylab= "Probability of Overall survival",
                       legend.title = "",
                       legend.labs = c("Two weeks",
                                       "Fixed","Weekly")) 
 p2OS4W$plot <- p2OS4W$plot+ 
   ggplot2::annotate("text", 
-                    x = 33, y = 0.58, # x and y coordinates of the text
-                    label = "Doses                        12-month % (CI)\n  Two weeks                 87% (75%, 100%)\n Fixed dosing             80% (63%, 100%)\n Weekly                      90% (81%, 100%)",
-                    size = 5)
+                    x = 30, y = 0.62, # x and y coordinates of the text
+                    label = "Doses                        12-month % (CI)  
+                    ",
+                    size = 5, hjust=0, fontface = "bold")+ 
+  ggplot2::annotate("text", 
+                    x = 30, y = 0.58, # x and y coordinates of the text
+                    label = "  
+                    \nTwo weeks               87% (75%, 100%)\nFixed dosing             80% (63%, 100%)\nWeekly                      90% (81%, 100%)",
+                    size = 5, hjust =0 )
 
 combined_plotOS4W <- p2OS4W$plot / p2OS4W$table +
   plot_layout(heights = c(3,0.8))
