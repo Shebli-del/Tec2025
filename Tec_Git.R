@@ -53,6 +53,7 @@ TecRes <- TecRes %>%
   )
 
 Tec3M <- subset(TecRes, TecRes$PFS > 3)
+Tec3M_No4w <- subset(Tec3M, Tec3M$Dosing_frequency != "4_weeks")
 
 Tec$Date_of_initial_diagnosis <- as.Date(Tec$Date_of_initial_diagnosis,
                                          origin = "1899-12-31")
@@ -1083,6 +1084,32 @@ ftball<- survfit(Surv(Tec3M$PFS,Tec3M$Progressed)~
 PR.coxall <- coxph(Surv(Tec3M$PFS,Tec3M$Progressed)~
                     Tec3M$Dosing_frequency);summary(PR.coxall)
 
+ftbOS4W<- survfit(Surv(Tec3M_No4w$OS,Tec3M_No4w$Died)~
+                    Tec3M_No4w$Dosing_frequency); ftbOS4W
+PR.coxmOS4W <- coxph(Surv(Tec3M_No4w$OS,Tec3M_No4w$Died)~
+                   Tec3M_No4w$Dosing_frequency);summary(PR.coxmOS4W)
+
+ftbPFS4W<- survfit(Surv(Tec3M_No4w$PFS,Tec3M_No4w$Progressed)~
+                   Tec3M_No4w$Dosing_frequency ); ftbPFS4W
+PR.coxPFS4W <- coxph(Surv(Tec3M_No4w$PFS,Tec3M_No4w$Progressed)~
+                     Tec3M_No4w$Dosing_frequency);summary(PR.coxPFS4W)
+
+Fix_W <- subset(Tec3M_No4w, Tec3M_No4w$Dosing_frequency != "2_weeks")
+
+ftbFixW<- survfit(Surv(Fix_W$OS,Fix_W$Died)~
+                    Fix_W$Dosing_frequency); ftbFixW
+PR.coxFixW <- coxph(Surv(Fix_W$OS,Fix_W$Died)~
+                       Fix_W$Dosing_frequency);summary(PR.coxFixW)
+
+ftbFixWPFS<- survfit(Surv(Tec3M_No4w$PFS,Tec3M_No4w$Progressed)~
+                     Tec3M_No4w$Dosing_frequency ); ftbFixWPFS
+PR.coxFixWPFS <- coxph(Surv(Tec3M_No4w$PFS,Tec3M_No4w$Progressed)~
+                       Tec3M_No4w$Dosing_frequency);summary(PR.coxFixWPFS)
+
+#12 months survivals:
+
+summary(ftbFixWPFS, times= 12)
+summary(ftbOS4W, times= 12)
 
 # Kaplan Meier plots ------------------------------------------------------
 
@@ -1259,6 +1286,78 @@ png(file = "censored_PFS_byDose.png",   # The directory you want to save the fil
 
 # Step 2: Create the plot with R code
 combined_plot1
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
+
+p2PFS4W <- ggsurvplot(ftbPFS4W, data = Tec3M_No4w, risk.table = TRUE,pval=T,
+                    palette = "jco", risk.table.col = c("Dosing_frequency"),
+                    main = "maintitle", surv.median.line = "hv",
+                    pval.coord=c(25,0.25),
+                    submain = "Progression free survival based on
+           dosing frequency" , break.x.by=5,
+                    caption = "", xlim = c(0,46), ylim = c(0, 1.01),
+                    xlab="Months", fun=NULL,
+                    axes.offset=FALSE,pval.method = F, conf.int=F, 
+                    ylab= "Probability of progression free survival",
+                    legend.title = "",
+                    legend.labs = c("Two weeks",
+                                    "Fixed","Weekly")) 
+p2PFS4W$plot <- p2PFS4W$plot+ 
+  ggplot2::annotate("text", 
+                    x = 35, y = 0.6, # x and y coordinates of the text
+                    label = "\nDoses                        12-month% (CI)\n  Two weeks                 74% (59%, 92%)\n Fixed dosing             65% (45%, 95%)\n Weekly                      68% (53%, 87%)",
+                    size = 5)
+
+combined_plotPFS4W <- p2PFS4W$plot / p2PFS4W$table +
+  plot_layout(heights = c(3,0.8))
+
+combined_plotPFS4W
+
+png(file = "PFS_Fixed_W_BIW.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
+
+# Step 2: Create the plot with R code
+combined_plotPFS4W
+
+# Step 3: Run dev.off() to create the file!
+dev.off()
+
+p2OS4W <- ggsurvplot(ftbOS4W, data = Tec3M_No4w, risk.table = TRUE,pval=T,
+                      palette = "jco", risk.table.col = c("Dosing_frequency"),
+                      main = "maintitle", surv.median.line = "hv",
+                      pval.coord=c(25,0.25),
+                      submain = "Progression free survival based on
+           dosing frequency" , break.x.by=5,
+                      caption = "", xlim = c(0,46), ylim = c(0, 1.01),
+                      xlab="Months", fun=NULL,
+                      axes.offset=FALSE,pval.method = F, conf.int=F, 
+                      ylab= "Probability of progression free survival",
+                      legend.title = "",
+                      legend.labs = c("Two weeks",
+                                      "Fixed","Weekly")) 
+p2OS4W$plot <- p2OS4W$plot+ 
+  ggplot2::annotate("text", 
+                    x = 33, y = 0.58, # x and y coordinates of the text
+                    label = "Doses                        12-month % (CI)\n  Two weeks                 87% (75%, 100%)\n Fixed dosing             80% (63%, 100%)\n Weekly                      90% (81%, 100%)",
+                    size = 5)
+
+combined_plotOS4W <- p2OS4W$plot / p2OS4W$table +
+  plot_layout(heights = c(3,0.8))
+
+combined_plotOS4W
+
+png(file = "OS_Fixed_W_BIW.png",   # The directory you want to save the file in
+    width = 20000, # The width of the plot in inches
+    height = 20000,
+    res       = 2200,
+    pointsize = 2) # The height of the plot in inches
+
+# Step 2: Create the plot with R code
+combined_plotOS4W
 
 # Step 3: Run dev.off() to create the file!
 dev.off()
