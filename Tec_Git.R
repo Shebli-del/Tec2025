@@ -1356,8 +1356,8 @@ combined_plotOS4W <- p2OS4W$plot / p2OS4W$table +
 combined_plotOS4W
 
 png(file = "OS_Fixed_W_BIW.png",   # The directory you want to save the file in
-    width = 20000, # The width of the plot in inches
-    height = 20000,
+    width = 25000, # The width of the plot in inches
+    height = 18000,
     res       = 2200,
     pointsize = 2) # The height of the plot in inches
 
